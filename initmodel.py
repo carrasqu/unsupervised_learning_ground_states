@@ -284,8 +284,8 @@ for i in range(nbin):
   
  # Computing the observables necessary for the gradient of the energy
  ###local energy ex##
- ex=np.zeros((tset.shape[0],1))
- exdiag=np.zeros((tset.shape[0],1))
+ ex=np.zeros((tset.shape[0],1)) # off diagonal energy
+ exdiag=np.zeros((tset.shape[0],1)) # diagonal energy
  for v in range(lx*lx):
      #plaquette term sxsxsxsx:
      fset=flips(vertex[v,:],xc,tset)  
@@ -302,10 +302,9 @@ for i in range(nbin):
  np.savetxt('wf.txt'+str(i),wfset) 
  #print "single spin fliop acceptance",(acc+0.00)/(nstep*nh)
  #print "gauge update acceptance",(accg+0.0)/(nstep*nh) 
- energy=np.sum(ex)/tset.shape[0]
+ energy=np.sum(ex)/tset.shape[0] # total energy
 
  #computing gradientes per example the shitty way
- 
  iii=0
  grads=sess.run(grad,feed_dict={ x:np.reshape(tset[iii,:],(1,tset.shape[1]))})
  #print np.asarray(grads)
@@ -316,16 +315,18 @@ for i in range(nbin):
      DW=DW+2*np.asscalar(ex[iii])*np.asarray(grads)-2*energy*np.asarray(grads) 
       
   
- DW=DW/tset.shape[0]
+ DW=DW/tset.shape[0] # gradients ready
  #print DW 
 
+ # evaluate the current parameters of the WF 
  Wc1=sess.run(W_conv1)
  bc1=sess.run(b_conv1)
  wfc1=sess.run(W_fc1)
  bfc1=sess.run(b_fc1)
  wfc2=sess.run(W_fc2)
  bfc2=sess.run(b_fc2)
- 
+
+ # gradient descent step 
  Wc1=Wc1-gamma*DW[0]
  bc1=bc1-gamma*DW[1]
  wfc1=wfc1-gamma*DW[2]
@@ -333,7 +334,7 @@ for i in range(nbin):
  wfc2=wfc2-gamma*DW[4]
  bfc2=bfc2-gamma*DW[5]
 
-
+ # Back to tensorflow variables 
  aW_conv1 = W_conv1.assign(Wc1)
  sess.run(aW_conv1) 
  ab_conv1 = b_conv1.assign(bc1)
